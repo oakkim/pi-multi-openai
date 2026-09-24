@@ -37,15 +37,34 @@ pi install git:github.com/oakkim/pi-multi-openai
 ln -s ~/Projects/pi-multi-openai ~/.pi/agent/extensions/openai-pool
 ```
 
-Then create your config:
+Then set up your accounts interactively:
 
 ```
-inside pi:  /openai-pool init      (creates a sample config)
-or by hand: edit ~/.pi/agent/openai-pool.json
+inside pi:  /openai-pool add      (browser login / paste token / API key)
 ```
+
+or write `~/.pi/agent/openai-pool.json` by hand (see below).
 
 For per-project usage, link it into `.pi/extensions/` or add the path to the
 `extensions` array in `settings.json`.
+
+## Adding accounts
+
+`/openai-pool add` walks you through everything:
+
+1. **ChatGPT — browser login (recommended)** — opens the ChatGPT device-login
+   page, shows a one-time code in a widget, and stores the tokens for you
+   (`~/.pi/agent/openai-pool-tokens/<name>.json`). Nothing to copy around.
+2. **ChatGPT — paste refresh token** — for tokens you already have
+   (e.g. from `~/.codex/auth.json`).
+3. **OpenAI API key** — literal / `$ENV` / `!command`, with optional custom
+   endpoint (OpenAI-compatible proxies work too).
+
+Then pick the priority position (front or back of the queue) and you're done.
+Token refresh is automatic afterwards (rotated tokens are written back).
+
+- `/openai-pool login <name>` — re-login a ChatGPT account (after auth failure)
+- `/openai-pool remove <name>` — remove an account (and its stored tokens)
 
 ## Configuration
 
@@ -83,8 +102,10 @@ For per-project usage, link it into `.pi/extensions/` or add the path to the
   (command output).
 - `chatgpt` credentials: with `authFile` (e.g. Codex CLI's `~/.codex/auth.json`
   or pi's `~/.pi/agent/auth.json`) the extension reads and refreshes the tokens
-  and writes rotated tokens back in the same format. With inline
-  `refreshToken`/`accessToken`, refreshed tokens are stored in the state file.
+  and writes rotated tokens back in the same format. Accounts added via
+  `/openai-pool add` store tokens in `~/.pi/agent/openai-pool-tokens/`.
+  With inline `refreshToken`/`accessToken`, refreshed tokens are stored in the
+  state file.
 - `models`: per-account model filter (`*` globs). E.g. `["gpt-6*"]` makes the
   account only serve `gpt-6*` requests.
 - `models.custom`: models missing from the catalog (proxies, fine-tunes) —
@@ -124,6 +145,9 @@ status-bar entry (`⇄ sub-1`).
 | Command | Description |
 |---|---|
 | `/openai-pool` | per-account status, usage, and recent errors |
+| `/openai-pool add` | add an account interactively (browser login / token / API key) |
+| `/openai-pool login <name>` | re-login a ChatGPT account |
+| `/openai-pool remove <name>` | remove an account |
 | `/openai-pool init` | create a sample config if none exists |
 | `/openai-pool test [name]` | live-check account credentials/availability |
 | `/openai-pool reset [name\|all]` | clear cooldown / exhausted / disabled state |

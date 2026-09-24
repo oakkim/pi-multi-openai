@@ -261,3 +261,37 @@ test("auth file parsing supports Codex CLI and pi credential stores", async () =
   assert.equal(t.access, "pa2");
   assert.equal(t.refresh, "pr2");
 });
+
+// ---------------------------------------------------------------------------
+// config mutation + managed token store (account onboarding)
+// ---------------------------------------------------------------------------
+
+test("updateConfigFile creates and merges accounts preserving other fields", async () => {
+  process.env.OPENAI_POOL_CONFIG = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "cfg-test-")), "config.json");
+  const { updateConfigFile, tokenStorePathFor, getTokenStoreDir, writeTokenStoreFile, readTokensFromAuthFile } =
+    await import("../src/config.ts").then(async (c) => ({ ...c, ...(await import("../src/chatgpt.ts")) }));
+
+  // create from nothing
+  updateConfigFile((r) => r.accounts.push({ name: "a", kind: "chatgpt", refreshToken: "r1" }));
+  // merge, preserving sibling fields
+  updateConfigFile((r) => {
+    r.strategy = "rotate";
+    r.accounts.push({ name: "b", kind: "apiKey", apiKey: "sk-x" });
+  });
+  const raw = JSON.parse(fs.readFileSync(process.env.OPENAI_POOL_CONFIG, "utf8"));
+  assert.equal(raw.accounts.length, 2);
+  assert.equal(raw.strategy, "rotate");
+  assert.equal(raw.accounts[0].refreshToken, "r1");
+
+  // managed token store round-trip (Codex auth.json shape)
+  const file = tokenStorePathFor("my acct/1");
+  assert.ok(file.startsWith(getTokenStoreDir()));
+  assert.ok(!file.includes(" "), "name sanitized for filename");
+  writeTokenStoreFile(file, { access: "aa", refresh: "rr", expiresAt: 1791026278000 });
+  const t = readTokensFromAuthFile(file);
+  assert.equal(t.access, "aa");
+  assert.equal(t.refresh, "rr");
+  assert.equal(t.expiresAt, 1791026278000);
+
+  delete process.env.OPENAI_POOL_CONFIG;
+});

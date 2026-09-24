@@ -7,6 +7,7 @@
  */
 
 import fs from "node:fs";
+import path from "node:path";
 import type { AccountConfig } from "./config.ts";
 import type { AccountState, ChatGPTTokens } from "./state.ts";
 
@@ -81,6 +82,26 @@ export function writeTokensToAuthFile(file: string, tokens: ChatGPTTokens): void
   } catch {
     // best effort: refreshed tokens still live in the pool state file
   }
+}
+
+/** Write tokens to a pool-managed store file (Codex auth.json shape). */
+export function writeTokenStoreFile(file: string, tokens: ChatGPTTokens): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    JSON.stringify(
+      {
+        tokens: {
+          access_token: tokens.access,
+          refresh_token: tokens.refresh,
+          expires_at: Math.floor(tokens.expiresAt / 1000),
+        },
+        last_refresh: new Date().toISOString(),
+      },
+      null,
+      2,
+    ) + "\n",
+  );
 }
 
 /**

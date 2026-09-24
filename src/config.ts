@@ -105,23 +105,9 @@ export function getStatePath(): string {
 
 export function sampleConfig(): string {
   const sample = {
-    accounts: [
-      {
-        name: "chatgpt-main",
-        kind: "chatgpt",
-        authFile: "~/.codex/auth.json",
-      },
-      {
-        name: "chatgpt-backup",
-        kind: "chatgpt",
-        refreshToken: "여기에 refresh token 붙여넣기",
-      },
-      {
-        name: "api-key-1",
-        kind: "apiKey",
-        apiKey: "$OPENAI_API_KEY",
-      },
-    ],
+    // Priority = array order. Add accounts with `/openai-pool add` (interactive)
+    // or by hand — see README.md for all fields.
+    accounts: [],
     strategy: "priority",
     models: { include: ["*"], exclude: [] },
     policy: {
@@ -132,6 +118,31 @@ export function sampleConfig(): string {
     },
   };
   return JSON.stringify(sample, null, 2) + "\n";
+}
+
+/**
+ * Read-modify-write the raw config file, preserving all fields as-is.
+ * Creates the file with an empty skeleton when missing.
+ */
+export function updateConfigFile(mutate: (raw: Record<string, any>) => void): void {
+  const configPath = getConfigPath();
+  let raw: Record<string, any> = {};
+  if (fs.existsSync(configPath)) {
+    raw = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<string, any>;
+  }
+  if (!Array.isArray(raw.accounts)) raw.accounts = [];
+  mutate(raw);
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.writeFileSync(configPath, JSON.stringify(raw, null, 2) + "\n");
+}
+
+/** Managed token directory for accounts added via `/openai-pool add|login`. */
+export function getTokenStoreDir(): string {
+  return path.join(getAgentDir(), "openai-pool-tokens");
+}
+
+export function tokenStorePathFor(name: string): string {
+  return path.join(getTokenStoreDir(), `${name.replace(/[^\w.-]/g, "_")}.json`);
 }
 
 function expandHome(p: string): string {
