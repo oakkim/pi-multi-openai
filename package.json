@@ -1,0 +1,10 @@
+{
+  "name": "pi-openai-pool",
+  "version": "0.1.0",
+  "description": "pi extension: multiple OpenAI accounts with priority-based automatic failover on usage limits",
+  "type": "module",
+  "private": true,
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}

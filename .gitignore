@@ -1,0 +1,12 @@
+# never commit credentials / runtime state
+openai-pool.json
+openai-pool.state.json
+*.state.json
+auth.json
+.env
+.env.*
+
+# dependencies & OS noise
+node_modules/
+.DS_Store
+*.log
