@@ -23,16 +23,20 @@ pi에서 **OpenAI 계정 여러 개를 우선순위로 묶어 쓰는 확장**입
 ## 설치
 
 ```bash
-# 1) 확장을 pi 전역 확장 디렉터리에 링크
-ln -s ~/Projects/pi-multi-openai ~/.pi/agent/extensions/openai-pool
+# 방법 1) pi 패키지로 설치 (settings.json 에 자동 등록)
+pi install git:github.com/oakkim/pi-multi-openai
 
-# 2) 설정 파일 생성 (샘플이 만들어짐)
-#    pi 안에서: /openai-pool init
-#    또는 직접: ~/.pi/agent/openai-pool.json 작성
+# 방법 2) 직접 링크
+ln -s ~/Projects/pi-multi-openai ~/.pi/agent/extensions/openai-pool
 ```
 
 프로젝트 단위로 쓰려면 `.pi/extensions/` 에 링크하거나 `settings.json` 의
-`extensions` 배열에 경로를 추가해도 됩니다 (`pi install ./pi-multi-openai`).
+`extensions` 배열에 경로를 추가해도 됩니다. 설치 후 설정 파일을 생성합니다:
+
+```
+# pi 안에서: /openai-pool init   (샘플 설정 생성)
+# 또는 직접: ~/.pi/agent/openai-pool.json 작성
+```
 
 ## 설정
 
